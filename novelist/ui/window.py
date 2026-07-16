@@ -20,7 +20,7 @@ class NovelistWindow(Adw.ApplicationWindow):
         # Absolute path tracking matching your local project directory structure
         self.base_dir = os.path.expanduser("~/Projects/KeyboardNovelist")
         
-        # NEW LOOKUP METRIC: Flattens the ANSI matrix layout into a single reference tracking set
+        # LOOKUP METRIC: Flattens the ANSI matrix layout into a single reference tracking set
         self.all_expected_keys = set(key.upper() for row in ANSI_LAYOUT for key in row)
         
         self.story_playlist = random.sample(POOL_OF_STORIES, 5)
@@ -60,16 +60,20 @@ class NovelistWindow(Adw.ApplicationWindow):
         self.wpm_label.set_hexpand(True)
         header_grid.attach(self.wpm_label, 1, 0, 1, 1)
         self.main_box.append(header_grid)
-# CHUNK 2 OF 4: USER LABELS, KEYBOARD ENGINE VIEW SETUP, EVENT REGISTERING
 
         self.story_label = Gtk.Label(label=self.current_story)
         self.story_label.set_wrap(True)
         self.story_label.add_css_class("title-2")
         self.main_box.append(self.story_label)
 
-        self.input_label = Gtk.Label(label="Start typing or press [ESC] to skip chapter...")
+        # MONOSPACE FIX INTEGRATED HERE: Protects characters from visual compression
+        self.input_label = Gtk.Label()
+        self.input_label.set_use_markup(True) 
+        self.input_label.set_markup("<span font_family='monospace' size='large'>Start typing or press [ESC] to skip chapter...</span>")
         self.input_label.add_css_class("body")
         self.main_box.append(self.input_label)
+
+# CHUNK 2 OF 4: CLEANED KEYBOARD ENGINE VIEW SETUP & INITIALIZATION
 
         keyboard_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=6)
         keyboard_box.set_halign(Gtk.Align.CENTER)
@@ -78,6 +82,7 @@ class NovelistWindow(Adw.ApplicationWindow):
             row_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=6)
             row_box.set_halign(Gtk.Align.CENTER)
             for key in row:
+                # FIX: Add [0] index to grab the clean string text and prevent a list crash
                 display_label = key.split('_')[0]
                 btn = Gtk.Button(label=display_label)
                 btn.set_focusable(False)
@@ -115,6 +120,7 @@ class NovelistWindow(Adw.ApplicationWindow):
         wpm = round((word_entries / elapsed_time) * 60)
         self.wpm_label.set_label(f"📖 Chapter {self.current_chapter_index + 1}/5  |  ⚡ WPM: {wpm}  |  ⏱️ Time: {int(elapsed_time)}s")
         return True
+
 # CHUNK 3 OF 4: KEY COMPRESSION ENGINE, CHAR MAPPINGS, COLOR HOOKS
 
     def on_key_press(self, controller, keyval, keycode, state):
@@ -148,6 +154,7 @@ class NovelistWindow(Adw.ApplicationWindow):
         if target_key in self.key_buttons:
             self.key_buttons[target_key].add_css_class("suggested-action")
             self.pressed_keys_history.add(target_key)
+            self.key_buttons[target_key].add_css_class("tested-key")
 
         unicode_char = chr(Gdk.keyval_to_unicode(keyval)) if Gdk.keyval_to_unicode(keyval) != 0 else ""
 
@@ -163,7 +170,10 @@ class NovelistWindow(Adw.ApplicationWindow):
             if not (state & (Gdk.ModifierType.CONTROL_MASK | Gdk.ModifierType.ALT_MASK)):
                 self.typed_buffer += unicode_char
 
-        self.input_label.set_label(f"Your Novel: {self.typed_buffer}")
+        # ESCAPE FIX: Automatically encodes raw strings (like & or <) into safe Pango markup tokens
+        safe_buffer = GLib.markup_escape_text(self.typed_buffer)
+
+        self.input_label.set_markup(f"<span font_family='monospace' size='large'>Your Novel: {safe_buffer}</span>")
         return True
 
     def on_key_release(self, controller, keyval, keycode, state):
@@ -186,6 +196,7 @@ class NovelistWindow(Adw.ApplicationWindow):
             if target_key in self.key_buttons:
                 self.key_buttons[target_key].remove_css_class("suggested-action")
         return True
+
 # CHUNK 4 OF 4: PROOFED VALIDATION, UNTOUCHED KEYS REPORT CARD SCREEN, AUDIO ENGINE
 
     def check_word_accuracy(self, is_enter=False):
@@ -222,7 +233,7 @@ class NovelistWindow(Adw.ApplicationWindow):
             self.current_story = self.story_playlist[self.current_chapter_index]
             self.story_label.set_label(self.current_story)
             status_text = "Chapter skipped. Advancing..." if skipped else "Chapter finished! Loading next scene..."
-            self.input_label.set_label(status_text)
+            self.input_label.set_markup(f"<span font_family='monospace' size='large'>{status_text}</span>")
             self.wpm_label.set_label(f"📖 Chapter {self.current_chapter_index + 1}/5  |  ⚡ WPM: 0  |  ⏱️ Time: 0s")
         else:
             self.show_results_screen()
@@ -246,10 +257,10 @@ class NovelistWindow(Adw.ApplicationWindow):
         keys_hit_count = len(self.pressed_keys_history)
         coverage_percent = round((keys_hit_count / total_hardware_keys) * 100)
         
-        # NEW CRITERIA: Find which exact layout mapping keys were untouched
+        # Find which exact layout mapping keys were untouched
         untouched_keys_set = self.all_expected_keys - self.pressed_keys_history
         
-        # Clean labels up nicely for presentation (remove systemic L/R marker underscores)
+        # Clean labels up nicely for presentation
         clean_untouched_list = [k.split('_')[0] for k in sorted(list(untouched_keys_set))]
         
         if clean_untouched_list:
@@ -286,7 +297,8 @@ class NovelistWindow(Adw.ApplicationWindow):
     def play_sound(self, sound_type):
         file_path = os.path.join(self.base_dir, f"assets/audio/{sound_type}.ogg")
         if os.path.exists(file_path):
-            os.system(f"paplay {file_path} &")
+            # Native PipeWire playback command sequence for modern Linux Mint 22.3
+            os.system(f"pw-cat --play {file_path} &")
         else:
             Gio.app_info_launch_default_for_uri("bell://", None)
 
