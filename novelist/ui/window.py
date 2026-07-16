@@ -149,8 +149,11 @@ class NovelistWindow(Adw.ApplicationWindow):
         unicode_char = chr(Gdk.keyval_to_unicode(keyval)) if Gdk.keyval_to_unicode(keyval) != 0 else ""
 
         if key_name == "space":
-            self.check_word_accuracy()
+            self.check_word_accuracy(is_enter=False)
             self.typed_buffer += " "
+        elif key_name in ["Return", "KP_Enter"]:
+            self.check_word_accuracy(is_enter=True)
+            return True
         elif key_name == "BackSpace":
             self.typed_buffer = self.typed_buffer[:-1]
         elif unicode_char and len(unicode_char) == 1:
@@ -182,9 +185,12 @@ class NovelistWindow(Adw.ApplicationWindow):
         return True
 # CHUNK 4 OF 4: WORD VALIDATION, END GAME MATRIX SCREEN, AUDIO HARDWARE TRIGGERS
 
-    def check_word_accuracy(self):
+    def check_word_accuracy(self, is_enter=False):
         story_words = self.current_story.split()
         typed_words = self.typed_buffer.split()
+        
+        if not typed_words:
+            return
         
         current_word_idx = len(typed_words) - 1
         if current_word_idx < len(story_words):
@@ -193,7 +199,8 @@ class NovelistWindow(Adw.ApplicationWindow):
             else:
                 self.play_sound("error")
 
-        if len(typed_words) >= len(story_words):
+        # Only allow advancing the chapter if the user explicitly hits Enter
+        if is_enter and len(typed_words) >= len(story_words):
             self.advance_game(skipped=False)
 
     def advance_game(self, skipped=False):
