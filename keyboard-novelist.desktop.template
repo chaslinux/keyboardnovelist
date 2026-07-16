@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Name=Keyboard Novelist
+Comment=Gamified hardware keyboard layout test suite
+Exec=python3 TARGET_DIR/main.py
+Icon=keyboard-novelist
+Terminal=false
+Categories=Development;Utility;GTK;
+StartupNotify=true
+
