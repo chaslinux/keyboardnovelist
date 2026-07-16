@@ -29,7 +29,7 @@ sudo apt install python3 python3-gi python3-gi-cairo gir1.2-gtk-4.0 gir1.2-adw-1
 Clone your project repository, step into the working tree, and launch the localized deployment script:
 
 ```bash
-git clone https://github.com
+git clone https://github.com/chaslinux/keyboardnovelist
 cd keyboardnovelist
 chmod +x install.sh
 ./install.sh
