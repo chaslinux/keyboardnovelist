@@ -1,24 +1,23 @@
 #!/bin/bash
 
-# Target local deployment paths
 TARGET_DIR="$HOME/.local/share/keyboard-novelist"
 DESKTOP_FILE="$HOME/.local/share/applications/keyboard-novelist.desktop"
 
-echo "🗑️ Removing Keyboard Novelist..."
+echo "🗑️ Removing Keyboard Novelist and deployment assets..."
 
-# 1. Cleanly wipe out application core folder directories
+# Wipe out the core data folder along with the audio and icon folders
 if [ -d "$TARGET_DIR" ]; then
     rm -rf "$TARGET_DIR"
-    echo "✔ Cleaned application configuration assets."
+    echo "✔ Cleaned application configuration assets and audio tracks."
 fi
 
-# 2. Extract the desktop start menu shortcut link
+# Remove the system panel shortcut
 if [ -f "$DESKTOP_FILE" ]; then
     rm "$DESKTOP_FILE"
     echo "✔ Removed desktop menu shortcut."
 fi
 
-# 3. Force re-index global Mint environment directory indexes
+# Re-index desktop tables
 update-desktop-database "$HOME/.local/share/applications" &> /dev/null
 
 echo "✨ Keyboard Novelist has been successfully uninstalled."
