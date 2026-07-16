@@ -1,0 +1,6 @@
+data/org.gnome.keyboardnovelist.desktop.in
+data/org.gnome.keyboardnovelist.metainfo.xml.in
+data/org.gnome.keyboardnovelist.gschema.xml
+src/main.py
+src/window.py
+src/window.ui
