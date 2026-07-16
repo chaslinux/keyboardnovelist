@@ -35,13 +35,20 @@ class KeyboardNovelistApp(Adw.Application):
         self.timer_active = False
 
     def on_activate(self, app):
-        # FIX: Explicitly using AdwWindow or using set_content() fixes the core dump
         self.window = Adw.ApplicationWindow(application=app)
         self.window.set_title("Keyboard Novelist")
-        self.window.set_default_size(950, 550)
+        self.window.set_default_size(950, 600)
 
+        # Base layout box
+        window_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=0)
+
+        # FIX #2: Explicitly adding a standard Adw HeaderBar gives the mouse its grab-anchor for dragging
+        header_bar = Adw.HeaderBar()
+        window_box.append(header_bar)
+
+        # Game UI Workspace Panel
         main_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=24)
-        main_box.set_margin_top(30)
+        main_box.set_margin_top(20)
         main_box.set_margin_bottom(30)
         main_box.set_margin_start(30)
         main_box.set_margin_end(30)
@@ -92,6 +99,7 @@ class KeyboardNovelistApp(Adw.Application):
             keyboard_box.append(row_box)
 
         main_box.append(keyboard_box)
+        window_box.append(main_box)
 
         # Register hardware event systems
         event_controller = Gtk.EventControllerKey.new()
@@ -99,8 +107,7 @@ class KeyboardNovelistApp(Adw.Application):
         event_controller.connect("key-released", self.on_key_release)
         self.window.add_controller(event_controller)
 
-        # FIX: Adw.ApplicationWindow uses set_content, NOT set_child
-        self.window.set_content(main_box)
+        self.window.set_content(window_box)
         self.window.present()
 
     def update_metrics(self):
@@ -133,16 +140,25 @@ class KeyboardNovelistApp(Adw.Application):
             GLib.timeout_add(200, self.update_metrics)
 
         normal_key = key_name.upper()
+
+        # UI Key highlighting adjustments for symbol strings
+        alias_map = {"SEMICOLON": ";", "COMMA": ",", "PERIOD": ".", "MINUS": "-", "EQUAL": "=", "SLASH": "/", "BACKSLASH": "\\", "APOSTROPHE": "'", "BRACKETLEFT": "[", "BRACKETRIGHT": "]"}
+        if normal_key in alias_map:
+            normal_key = alias_map[normal_key]
+
         if normal_key in self.key_buttons:
             self.key_buttons[normal_key].add_css_class("suggested-action")
+
+        # FIX #1: Use unicode transformation maps to parse standard character symbols safely
+        unicode_char = chr(Gdk.keyval_to_unicode(keyval)) if Gdk.keyval_to_unicode(keyval) != 0 else ""
 
         if key_name == "space":
             self.check_word_accuracy()
             self.typed_buffer += " "
         elif key_name == "BackSpace":
             self.typed_buffer = self.typed_buffer[:-1]
-        elif len(key_name) == 1:
-            self.typed_buffer += key_name
+        elif unicode_char and len(unicode_char) == 1:
+            self.typed_buffer += unicode_char
 
         self.input_label.set_label(f"Your Novel: {self.typed_buffer}")
         return True
@@ -151,6 +167,10 @@ class KeyboardNovelistApp(Adw.Application):
         key_name = Gdk.keyval_name(keyval)
         if key_name:
             normal_key = key_name.upper()
+            alias_map = {"SEMICOLON": ";", "COMMA": ",", "PERIOD": ".", "MINUS": "-", "EQUAL": "=", "SLASH": "/", "BACKSLASH": "\\", "APOSTROPHE": "'", "BRACKETLEFT": "[", "BRACKETRIGHT": "]"}
+            if normal_key in alias_map:
+                normal_key = alias_map[normal_key]
+
             if normal_key in self.key_buttons:
                 self.key_buttons[normal_key].remove_css_class("suggested-action")
         return True
@@ -176,19 +196,16 @@ class KeyboardNovelistApp(Adw.Application):
 
         if len(typed_words) >= len(story_words):
             self.timer_active = False
-            self.input_label.set_label("✨ Finished successfully! Generating layout code...")
+            self.input_label.set_label("✨ Finished successfully! Starting next chapter...")
             self.typed_buffer = ""
             self.current_story = random.choice(STORIES)
             self.story_label.set_label(self.current_story)
 
     def play_sound(self, sound_type):
-        # FIX: Bypasses GStreamer plugins to run safely across all Linux graphics stacks
         file_path = f"assets/audio/{sound_type}.ogg"
         if os.path.exists(file_path):
-            # Play in background asynchronously using system engine
             os.system(f"paplay {file_path} &")
         else:
-            # Fallback to structural motherboard bell if sound files are missing
             Gio.app_info_launch_default_for_uri("bell://", None)
 
 if __name__ == "__main__":
