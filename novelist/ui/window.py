@@ -200,7 +200,7 @@ class NovelistWindow(Adw.ApplicationWindow):
                 self.key_buttons[target_key].remove_css_class("suggested-action")
         return True
 
-# CHUNK 4 OF 4: PROOFED VALIDATION, UNTOUCHED KEYS REPORT CARD SCREEN, AUDIO ENGINE
+# CHUNK 4 OF 4: PROOFED VALIDATION, UNTOUCHED KEYS REPORT CARD SCREEN, PRO SUBPROCESS AUDIO
 
     def check_word_accuracy(self, is_enter=False):
         story_words = self.current_story.split()
@@ -264,7 +264,7 @@ class NovelistWindow(Adw.ApplicationWindow):
         untouched_keys_set = self.all_expected_keys - self.pressed_keys_history
         
         # Clean labels up nicely for presentation
-        clean_untouched_list = [k.split('_')[0] for k in sorted(list(untouched_keys_set))]
+        clean_untouched_list = [k.split('_') for k in sorted(list(untouched_keys_set))]
         
         if clean_untouched_list:
             untouched_display_text = ", ".join(clean_untouched_list)
@@ -298,11 +298,15 @@ class NovelistWindow(Adw.ApplicationWindow):
         self.window_box.append(results_container)
 
     def play_sound(self, sound_type):
+        import subprocess
         file_path = os.path.join(self.base_dir, f"assets/audio/{sound_type}.ogg")
         if os.path.exists(file_path):
-            # Native PipeWire playback command sequence for modern Linux Mint 22.3
-            os.system(f"pw-cat --play {file_path} &")
+            try:
+                # FIXED: Uses standalone subprocessing pipeline instead of os.system 
+                # This operates flawlessly from inside the compiled launcher context
+                subprocess.Popen(["pw-cat", "--play", file_path], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            except Exception:
+                print("\a", end="", flush=True)
         else:
-            # FIXED: Safe terminal bell fallback that never triggers unhandled GLib system thread errors
             print("\a", end="", flush=True)
 
