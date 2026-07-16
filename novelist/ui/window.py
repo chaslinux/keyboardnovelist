@@ -200,7 +200,7 @@ class NovelistWindow(Adw.ApplicationWindow):
                 self.key_buttons[target_key].remove_css_class("suggested-action")
         return True
 
-# CHUNK 4 OF 4: PROOFED VALIDATION, UNTOUCHED KEYS REPORT CARD SCREEN, PRO SUBPROCESS AUDIO
+# CHUNK 4 OF 4: PROOFED VALIDATION, REPORT CARD SCREEN, INTERNAL ENGINE AUDIO + LOGGER
 
     def check_word_accuracy(self, is_enter=False):
         story_words = self.current_story.split()
@@ -255,15 +255,11 @@ class NovelistWindow(Adw.ApplicationWindow):
         victory_title.add_css_class("title-1")
         results_container.append(victory_title)
         
-        # Calculate coverage statistics
         total_hardware_keys = len(self.all_expected_keys)
         keys_hit_count = len(self.pressed_keys_history)
         coverage_percent = round((keys_hit_count / total_hardware_keys) * 100)
         
-        # Find which exact layout mapping keys were untouched
         untouched_keys_set = self.all_expected_keys - self.pressed_keys_history
-        
-        # Clean labels up nicely for presentation
         clean_untouched_list = [k.split('_') for k in sorted(list(untouched_keys_set))]
         
         if clean_untouched_list:
@@ -277,7 +273,6 @@ class NovelistWindow(Adw.ApplicationWindow):
         summary_label.set_justify(Gtk.Justification.CENTER)
         results_container.append(summary_label)
         
-        # Display the missed key report header and text
         missed_title = Gtk.Label(label="⚠️ Untouched Keys Remaining:")
         missed_title.add_css_class("heading")
         results_container.append(missed_title)
@@ -298,15 +293,27 @@ class NovelistWindow(Adw.ApplicationWindow):
         self.window_box.append(results_container)
 
     def play_sound(self, sound_type):
-        import subprocess
+        """Uses native GNOME GStreamer loops and writes errors to an external log file."""
+        log_file = os.path.join(self.base_dir, "audio_debug.log")
         file_path = os.path.join(self.base_dir, f"assets/audio/{sound_type}.ogg")
-        if os.path.exists(file_path):
-            try:
-                # FIXED: Uses standalone subprocessing pipeline instead of os.system 
-                # This operates flawlessly from inside the compiled launcher context
-                subprocess.Popen(["pw-cat", "--play", file_path], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-            except Exception:
-                print("\a", end="", flush=True)
-        else:
+        
+        try:
+            # Dynamically initialize GStreamer internally
+            import gi
+            gi.require_version('Gst', '1.0')
+            from gi.repository import Gst
+            Gst.init(None)
+            
+            # Construct a clean native playbin pipeline
+            pipeline = Gst.parse_launch(f"playbin uri=file://{os.path.abspath(file_path)}")
+            if pipeline:
+                pipeline.set_state(Gst.State.PLAYING)
+                # Garbage collector to free audio memory after 1.5 seconds
+                GLib.timeout_add(1500, lambda: [pipeline.set_state(Gst.State.NULL), False])
+                
+        except Exception as e:
+            # Write any internal environment or permission errors directly to a log file
+            with open(log_file, "a") as f:
+                f.write(f"[{time.strftime('%Y-%m-%d %H:%M:%S')}] Audio error: {str(e)} | Checked path: {file_path}\n")
             print("\a", end="", flush=True)
 
