@@ -20,6 +20,9 @@ class NovelistWindow(Adw.ApplicationWindow):
         # Absolute path tracking matching your local project directory structure
         self.base_dir = os.path.expanduser("~/Projects/KeyboardNovelist")
         
+        # NEW LOOKUP METRIC: Flattens the ANSI matrix layout into a single reference tracking set
+        self.all_expected_keys = set(key.upper() for row in ANSI_LAYOUT for key in row)
+        
         self.story_playlist = random.sample(POOL_OF_STORIES, 5)
         self.current_chapter_index = 0
         self.current_story = self.story_playlist[self.current_chapter_index]
@@ -183,25 +186,32 @@ class NovelistWindow(Adw.ApplicationWindow):
             if target_key in self.key_buttons:
                 self.key_buttons[target_key].remove_css_class("suggested-action")
         return True
-# CHUNK 4 OF 4: WORD VALIDATION, END GAME MATRIX SCREEN, AUDIO HARDWARE TRIGGERS
+# CHUNK 4 OF 4: PROOFED VALIDATION, UNTOUCHED KEYS REPORT CARD SCREEN, AUDIO ENGINE
 
     def check_word_accuracy(self, is_enter=False):
         story_words = self.current_story.split()
-        typed_words = self.typed_buffer.split()
+        typed_words = self.typed_buffer.strip().split()
         
         if not typed_words:
             return
         
         current_word_idx = len(typed_words) - 1
-        if current_word_idx < len(story_words):
-            if typed_words[-1] == story_words[current_word_idx]:
-                self.play_sound("success")
+        
+        if not is_enter:
+            if current_word_idx < len(story_words):
+                if typed_words[-1] == story_words[current_word_idx]:
+                    self.play_sound("success")
+                else:
+                    self.play_sound("error")
+        else:
+            if len(typed_words) >= len(story_words):
+                if typed_words[-1] == story_words[-1]:
+                    self.play_sound("success")
+                    self.advance_game(skipped=False)
+                else:
+                    self.play_sound("error")
             else:
                 self.play_sound("error")
-
-        # Only allow advancing the chapter if the user explicitly hits Enter
-        if is_enter and len(typed_words) >= len(story_words):
-            self.advance_game(skipped=False)
 
     def advance_game(self, skipped=False):
         self.timer_active = False
@@ -231,15 +241,38 @@ class NovelistWindow(Adw.ApplicationWindow):
         victory_title.add_css_class("title-1")
         results_container.append(victory_title)
         
-        total_hardware_keys = sum(len(row) for row in ANSI_LAYOUT)
+        # Calculate coverage statistics
+        total_hardware_keys = len(self.all_expected_keys)
         keys_hit_count = len(self.pressed_keys_history)
         coverage_percent = round((keys_hit_count / total_hardware_keys) * 100)
         
+        # NEW CRITERIA: Find which exact layout mapping keys were untouched
+        untouched_keys_set = self.all_expected_keys - self.pressed_keys_history
+        
+        # Clean labels up nicely for presentation (remove systemic L/R marker underscores)
+        clean_untouched_list = [k.split('_')[0] for k in sorted(list(untouched_keys_set))]
+        
+        if clean_untouched_list:
+            untouched_display_text = ", ".join(clean_untouched_list)
+        else:
+            untouched_display_text = "None! Flawless 100% hardware matrix activation!"
+
         summary_label = Gtk.Label(label=f"You successfully completed your 5-chapter story exploration!\n\n"
                                         f"🎹 Hardware Keys Tested: {keys_hit_count} / {total_hardware_keys} ({coverage_percent}% coverage)")
         summary_label.add_css_class("title-3")
         summary_label.set_justify(Gtk.Justification.CENTER)
         results_container.append(summary_label)
+        
+        # Display the missed key report header and text
+        missed_title = Gtk.Label(label="⚠️ Untouched Keys Remaining:")
+        missed_title.add_css_class("heading")
+        results_container.append(missed_title)
+        
+        missed_detail = Gtk.Label(label=untouched_display_text)
+        missed_detail.add_css_class("body")
+        missed_detail.set_wrap(True)
+        missed_detail.set_justify(Gtk.Justification.CENTER)
+        results_container.append(missed_detail)
         
         exit_btn = Gtk.Button(label="Close Application")
         exit_btn.add_css_class("destructive-action")
