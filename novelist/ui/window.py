@@ -17,8 +17,10 @@ class NovelistWindow(Adw.ApplicationWindow):
         self.set_title("Keyboard Novelist")
         self.set_default_size(950, 600)
         
-        # Absolute path tracking matching your local project directory structure
-        self.base_dir = os.path.expanduser("~/Projects/KeyboardNovelist")
+        # FIXED: Automatically calculates the real project root directory location dynamically
+        ui_dir = os.path.dirname(os.path.abspath(__file__))
+        novelist_dir = os.path.dirname(ui_dir)
+        self.base_dir = os.path.dirname(novelist_dir)
         
         # LOOKUP METRIC: Flattens the ANSI matrix layout into a single reference tracking set
         self.all_expected_keys = set(key.upper() for row in ANSI_LAYOUT for key in row)
@@ -66,12 +68,13 @@ class NovelistWindow(Adw.ApplicationWindow):
         self.story_label.add_css_class("title-2")
         self.main_box.append(self.story_label)
 
-        # MONOSPACE FIX INTEGRATED HERE: Protects characters from visual compression
+        # MONOSPACE INITIALIZATION: Protects characters from visual compression
         self.input_label = Gtk.Label()
         self.input_label.set_use_markup(True) 
         self.input_label.set_markup("<span font_family='monospace' size='large'>Start typing or press [ESC] to skip chapter...</span>")
         self.input_label.add_css_class("body")
         self.main_box.append(self.input_label)
+
 
 # CHUNK 2 OF 4: CLEANED KEYBOARD ENGINE VIEW SETUP & INITIALIZATION
 
@@ -300,5 +303,6 @@ class NovelistWindow(Adw.ApplicationWindow):
             # Native PipeWire playback command sequence for modern Linux Mint 22.3
             os.system(f"pw-cat --play {file_path} &")
         else:
-            Gio.app_info_launch_default_for_uri("bell://", None)
+            # FIXED: Safe terminal bell fallback that never triggers unhandled GLib system thread errors
+            print("\a", end="", flush=True)
 
