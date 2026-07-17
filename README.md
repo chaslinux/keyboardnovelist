@@ -1,6 +1,5 @@
-![Application Screenshot](https://private-user-images.githubusercontent.com/97259120/622904736-a631a52b-1031-4c9b-a2b8-22224717d229.png?jwt=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJnaXRodWIuY29tIiwiYXVkIjoicmF3LmdpdGh1YnVzZXJjb250ZW50LmNvbSIsImtleSI6ImtleTUiLCJleHAiOjE3ODQyNDI5NzEsIm5iZiI6MTc4NDI0MjY3MSwicGF0aCI6Ii85NzI1OTEyMC82MjI5MDQ3MzYtYTYzMWE1MmItMTAzMS00YzliLWEyYjgtMjIyMjQ3MTdkMjI5LnBuZz9YLUFtei1BbGdvcml0aG09QVdTNC1ITUFDLVNIQTI1NiZYLUFtei1DcmVkZW50aWFsPUFLSUFWQ09EWUxTQTUzUFFLNFpBJTJGMjAyNjA3MTYlMkZ1cy1lYXN0LTElMkZzMyUyRmF3czRfcmVxdWVzdCZYLUFtei1EYXRlPTIwMjYwNzE2VDIyNTc1MVomWC1BbXotRXhwaXJlcz0zMDAmWC1BbXotU2lnbmF0dXJlPTM3YWNlZmE0MjBlY2YwNjNiMjY1YWM3MTczNDZiNTUxYzJkZDMyNjQ1NDAwYmJjZTdmZDA0OTJjMGJmMDNmODUmWC1BbXotU2lnbmVkSGVhZGVycz1ob3N0JnJlc3BvbnNlLWNvbnRlbnQtdHlwZT1pbWFnZSUyRnBuZyJ9.KqbzKSuWA_eHviRSZ_rfIm6LqCtbCHmkDzJxwcEMPo0)
-
 # 📝 Keyboard Novelist
+<img width="1920" height="1080" alt="Image" src="https://github.com/user-attachments/assets/a631a52b-1031-4c9b-a2b8-22224717d229" />
 
 A gamified hardware keyboard layout test suite built natively for the GNOME 3/4 desktop ecosystem using Python 3, GTK 4, and Libadwaita. This application transforms standard hardware verification checks into an engaging 5-chapter story typing exercise that monitors real-time performance metrics and maps exact modifier combinations.
 
