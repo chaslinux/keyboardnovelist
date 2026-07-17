@@ -260,7 +260,8 @@ class NovelistWindow(Adw.ApplicationWindow):
         coverage_percent = round((keys_hit_count / total_hardware_keys) * 100)
         
         untouched_keys_set = self.all_expected_keys - self.pressed_keys_history
-        clean_untouched_list = [k.split('_') for k in sorted(list(untouched_keys_set))]
+#        clean_untouched_list = [k.split('_') for k in sorted(list(untouched_keys_set))]
+        clean_untouched_list = [k.split('_')[0] for k in sorted(untouched_keys_set)]
         
         if clean_untouched_list:
             untouched_display_text = ", ".join(clean_untouched_list)
