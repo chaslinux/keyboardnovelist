@@ -20,8 +20,8 @@ cp novelist/ui/window.py "$TARGET_DIR/novelist/ui/"
 
 # 3. FIXED: Fetch high-quality Open-Source audio files directly into your INSTALLED data folder
 echo "🔊 Fetching audio chimes for installed suite environment..."
-wget -q -O "$TARGET_DIR/assets/audio/success.ogg" "https://google.com"
-wget -q -O "$TARGET_DIR/assets/audio/error.ogg" "https://google.com"
+cp assets/audio/success.ogg "$TARGET_DIR/assets/audio"
+cp assets/audio/error.ogg "$TARGET_DIR/assets/audio/"
 
 # 4. Transfer the local custom pixel-art mechanical keyboard icon
 echo "🎨 Transferring local key-deck artwork..."
