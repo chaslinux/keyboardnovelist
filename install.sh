@@ -4,6 +4,11 @@
 TARGET_DIR="$HOME/.local/share/keyboard-novelist"
 DESKTOP_DIR="$HOME/.local/share/applications"
 
+# Somewhere in the modifications we somehow removed the extra libraries, added back -wget
+echo "Updating system, and installing some dependencies for Keyboard Novelist."
+sudo apt update
+sudo apt -y install python3 python3-gi python3-gi-cairo gir1.2-gtk-4.0 gir1.2-adw-1
+
 echo "📝 Installing Keyboard Novelist..."
 
 # 1. Recreate clean directory trees
